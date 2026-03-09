@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SpeedConverterApp: App {
+struct SplitrApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
