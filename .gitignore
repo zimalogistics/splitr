@@ -5,8 +5,8 @@ DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 
-# Generated project (regenerate with: xcodegen generate)
-SpeedConverter.xcodeproj/
+# Generated project (regenerate with: ./generate.sh)
+*.xcodeproj/
 
 # macOS
 .DS_Store
