@@ -1,22 +1,26 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - Shared model (mirrors WidgetPreset in ContentView)
+// MARK: - Shared model (mirrors ContentView)
+
+private struct WidgetField: Codable {
+    let label: String
+    let value: String
+}
 
 private struct WidgetPreset: Codable {
     let name: String
-    let line1: String
-    let line2: String
+    let fields: [WidgetField]
 }
 
 private let appGroupID = "group.com.zimalogistics.splitr"
 private let widgetKey  = "splitr.widgetData"
 
-// MARK: - Colors (mirrors Splitr design tokens)
+// MARK: - Colors
 
 private let bgBase  = Color(red: 0.05, green: 0.07, blue: 0.13)
 private let accent  = Color(red: 0.25, green: 0.65, blue: 1.00)
-private let textDim = Color(white: 0.55)
+private let textDim = Color(white: 0.45)
 
 // MARK: - Timeline
 
@@ -28,9 +32,12 @@ private struct SplitEntry: TimelineEntry {
 private struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SplitEntry {
         SplitEntry(date: Date(), preset: WidgetPreset(
-            name: "Marathon pace",
-            line1: "8:30 /mi  ·  5:17 /km",
-            line2: "26.2 mi  ·  42.2 km  ·  3:42:20"
+            name: "Marathon goal",
+            fields: [
+                WidgetField(label: "PACE", value: "8:30 /mi"),
+                WidgetField(label: "DIST", value: "26.2 mi"),
+                WidgetField(label: "TIME", value: "3:42:20"),
+            ]
         ))
     }
 
@@ -68,37 +75,33 @@ private struct WidgetView: View {
     }
 
     private func filledView(preset: WidgetPreset) -> some View {
-        let hasName = !preset.name.isEmpty
-        let line1Size: CGFloat = hasName
-            ? (family == .systemSmall ? 16 : 19)
-            : (family == .systemSmall ? 20 : 24)
-        let line2Size: CGFloat = hasName
-            ? (family == .systemSmall ? 12 : 14)
-            : (family == .systemSmall ? 14 : 16)
+        let hasName   = !preset.name.isEmpty
+        let valueSize: CGFloat = family == .systemSmall ? 18 : 22
+        let labelSize: CGFloat = 10
+        let rowSpacing: CGFloat = family == .systemSmall ? 6 : 8
 
-        return VStack(alignment: .leading, spacing: 5) {
+        return VStack(alignment: .leading, spacing: rowSpacing) {
             if hasName {
                 Text(preset.name)
-                    .font(.system(size: family == .systemSmall ? 12 : 13,
-                                  weight: .medium, design: .rounded))
+                    .font(.system(size: family == .systemSmall ? 11 : 12,
+                                  weight: .semibold, design: .rounded))
                     .foregroundStyle(textDim)
                     .lineLimit(1)
+                    .padding(.bottom, 2)
             }
 
-            // User inputs — large accent text
-            Text(preset.line1)
-                .font(.system(size: line1Size, weight: .bold, design: .rounded))
-                .foregroundStyle(accent)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-
-            // Derived values
-            if !preset.line2.isEmpty {
-                Text(preset.line2)
-                    .font(.system(size: line2Size, weight: .medium, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.65))
-                    .lineLimit(family == .systemSmall ? 3 : 2)
-                    .fixedSize(horizontal: false, vertical: true)
+            ForEach(preset.fields, id: \.label) { field in
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(field.label)
+                        .font(.system(size: labelSize, weight: .bold, design: .rounded))
+                        .foregroundStyle(textDim)
+                        .frame(width: family == .systemSmall ? 34 : 40, alignment: .leading)
+                    Text(field.value)
+                        .font(.system(size: valueSize, weight: .bold, design: .rounded))
+                        .foregroundStyle(accent)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

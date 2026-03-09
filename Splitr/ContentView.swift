@@ -52,10 +52,14 @@ private func paceStringToSeconds(_ str: String) -> Double? {
 
 // MARK: - Widget Data Model
 
+struct WidgetField: Codable {
+    let label: String   // e.g. "PACE", "SPEED", "DIST", "TIME"
+    let value: String   // e.g. "8:30 /mi"
+}
+
 struct WidgetPreset: Codable {
     let name: String
-    let line1: String
-    let line2: String
+    let fields: [WidgetField]
 }
 
 private let appGroupID  = "group.com.zimalogistics.splitr"
@@ -324,32 +328,25 @@ final class ConverterViewModel: ObservableObject {
     }
 
     private func updateWidgetData() {
-        // Only show the left-side field per category (respects swap preferences)
         let swapSpeed    = UserDefaults.standard.bool(forKey: "splitr.swap.speed")
         let swapPace     = UserDefaults.standard.bool(forKey: "splitr.swap.pace")
         let swapDistance = UserDefaults.standard.bool(forKey: "splitr.swap.distance")
-        let leftFields: [InputField] = [
-            swapSpeed    ? .kph       : .mph,
-            swapPace     ? .pacePerKm : .pacePerMile,
-            swapDistance ? .distKm    : .distMiles,
-            .time
+
+        // One field per category, left-side preferred
+        let widgetSlots: [(InputField, String)] = [
+            (swapSpeed    ? .kph       : .mph,          "SPEED"),
+            (swapPace     ? .pacePerKm : .pacePerMile,  "PACE"),
+            (swapDistance ? .distKm    : .distMiles,     "DIST"),
+            (.time,                                      "TIME"),
         ]
 
-        func widgetLine(_ entry: SavedEntry, userOnly: Bool) -> String {
-            leftFields.compactMap { f -> String? in
-                guard entry.userEnteredFields.contains(f) == userOnly,
-                      let t = entry.texts[f], !t.isEmpty else { return nil }
-                let suffix = f.shortLabel.isEmpty ? "" : " \(f.shortLabel)"
-                return "\(t)\(suffix)"
-            }.joined(separator: "  ·  ")
-        }
-
-        let presets = savedEntries.prefix(5).map { entry in
-            WidgetPreset(
-                name: entry.name,
-                line1: widgetLine(entry, userOnly: true),
-                line2: widgetLine(entry, userOnly: false)
-            )
+        let presets = savedEntries.prefix(5).map { entry -> WidgetPreset in
+            let fields = widgetSlots.compactMap { (field, label) -> WidgetField? in
+                guard let value = entry.texts[field], !value.isEmpty else { return nil }
+                let suffix = field.shortLabel.isEmpty ? "" : " \(field.shortLabel)"
+                return WidgetField(label: label, value: "\(value)\(suffix)")
+            }
+            return WidgetPreset(name: entry.name, fields: fields)
         }
         if let data = try? JSONEncoder().encode(Array(presets)) {
             sharedDefaults?.set(data, forKey: widgetKey)
