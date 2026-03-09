@@ -55,10 +55,10 @@ Health & Fitness
 Utilities
 
 ## Support URL
-https://github.com/zimalogistics/converter/issues
+https://github.com/zimalogistics/splitr/issues
 
 ## Privacy Policy URL
-(host privacy-policy.html somewhere — GitHub Pages recommended, see below)
+https://zimalogistics.github.io/splitr/AppStore/privacy-policy.html
 
 ## Age Rating
 4+
