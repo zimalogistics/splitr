@@ -53,8 +53,9 @@ private func paceStringToSeconds(_ str: String) -> Double? {
 // MARK: - Widget Data Model
 
 struct WidgetField: Codable {
-    let label: String   // e.g. "PACE", "SPEED", "DIST", "TIME"
-    let value: String   // e.g. "8:30 /mi"
+    let label: String       // e.g. "PACE", "SPEED", "DIST", "TIME"
+    let value: String       // primary (left-side) unit e.g. "8:30 /mi"
+    let secondary: String?  // other unit e.g. "5:17 /km" — shown on medium widget
 }
 
 struct WidgetPreset: Codable {
@@ -332,19 +333,25 @@ final class ConverterViewModel: ObservableObject {
         let swapPace     = UserDefaults.standard.bool(forKey: "splitr.swap.pace")
         let swapDistance = UserDefaults.standard.bool(forKey: "splitr.swap.distance")
 
-        // One field per category, left-side preferred
-        let widgetSlots: [(InputField, String)] = [
-            (swapSpeed    ? .kph       : .mph,          "SPEED"),
-            (swapPace     ? .pacePerKm : .pacePerMile,  "PACE"),
-            (swapDistance ? .distKm    : .distMiles,     "DIST"),
-            (.time,                                      "TIME"),
+        // Primary (left) and secondary (right) field per category
+        let widgetSlots: [(primary: InputField, secondary: InputField?, label: String)] = [
+            (swapSpeed    ? .kph       : .mph,          swapSpeed    ? .mph       : .kph,          "SPEED"),
+            (swapPace     ? .pacePerKm : .pacePerMile,  swapPace     ? .pacePerMile : .pacePerKm,  "PACE"),
+            (swapDistance ? .distKm    : .distMiles,     swapDistance ? .distMiles : .distKm,       "DIST"),
+            (.time,                                      nil,                                        "TIME"),
         ]
 
+        func fmt(_ field: InputField, in entry: SavedEntry) -> String? {
+            guard let v = entry.texts[field], !v.isEmpty else { return nil }
+            let suffix = field.shortLabel.isEmpty ? "" : " \(field.shortLabel)"
+            return "\(v)\(suffix)"
+        }
+
         let presets = savedEntries.prefix(5).map { entry -> WidgetPreset in
-            let fields = widgetSlots.compactMap { (field, label) -> WidgetField? in
-                guard let value = entry.texts[field], !value.isEmpty else { return nil }
-                let suffix = field.shortLabel.isEmpty ? "" : " \(field.shortLabel)"
-                return WidgetField(label: label, value: "\(value)\(suffix)")
+            let fields = widgetSlots.compactMap { slot -> WidgetField? in
+                guard let value = fmt(slot.primary, in: entry) else { return nil }
+                let sec = slot.secondary.flatMap { fmt($0, in: entry) }
+                return WidgetField(label: slot.label, value: value, secondary: sec)
             }
             return WidgetPreset(name: entry.name, fields: fields)
         }

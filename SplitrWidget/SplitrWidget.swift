@@ -6,6 +6,7 @@ import SwiftUI
 private struct WidgetField: Codable {
     let label: String
     let value: String
+    let secondary: String?
 }
 
 private struct WidgetPreset: Codable {
@@ -34,9 +35,9 @@ private struct Provider: TimelineProvider {
         SplitEntry(date: Date(), preset: WidgetPreset(
             name: "Marathon goal",
             fields: [
-                WidgetField(label: "PACE", value: "8:30 /mi"),
-                WidgetField(label: "DIST", value: "26.2 mi"),
-                WidgetField(label: "TIME", value: "3:42:20"),
+                WidgetField(label: "PACE", value: "8:30 /mi", secondary: "5:17 /km"),
+                WidgetField(label: "DIST", value: "26.2 mi",  secondary: "42.2 km"),
+                WidgetField(label: "TIME", value: "3:42:20",  secondary: nil),
             ]
         ))
     }
@@ -75,37 +76,53 @@ private struct WidgetView: View {
     }
 
     private func filledView(preset: WidgetPreset) -> some View {
-        let hasName   = !preset.name.isEmpty
-        let valueSize: CGFloat = family == .systemSmall ? 18 : 22
-        let labelSize: CGFloat = 10
-        let rowSpacing: CGFloat = family == .systemSmall ? 6 : 8
+        let isSmall     = family == .systemSmall
+        let valueSize: CGFloat  = isSmall ? 17 : 20
+        let secSize: CGFloat    = isSmall ? 13 : 16
+        let labelSize: CGFloat  = 9
+        let rowSpacing: CGFloat = isSmall ? 5 : 7
+        let pad: CGFloat        = 10
 
         return VStack(alignment: .leading, spacing: rowSpacing) {
-            if hasName {
+            if !preset.name.isEmpty {
                 Text(preset.name)
-                    .font(.system(size: family == .systemSmall ? 11 : 12,
-                                  weight: .semibold, design: .rounded))
-                    .foregroundStyle(textDim)
+                    .font(.system(size: isSmall ? 12 : 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(accent)
                     .lineLimit(1)
-                    .padding(.bottom, 2)
+                    .padding(.bottom, 1)
             }
 
             ForEach(preset.fields, id: \.label) { field in
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 5) {
+                    // Label
                     Text(field.label)
                         .font(.system(size: labelSize, weight: .bold, design: .rounded))
                         .foregroundStyle(textDim)
-                        .frame(width: family == .systemSmall ? 34 : 40, alignment: .leading)
+                        .frame(width: 34, alignment: .leading)
+
+                    // Primary value
                     Text(field.value)
                         .font(.system(size: valueSize, weight: .bold, design: .rounded))
                         .foregroundStyle(accent)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
+
+                    // Secondary value — medium widget only
+                    if !isSmall, let sec = field.secondary {
+                        Text("·")
+                            .font(.system(size: secSize, weight: .medium))
+                            .foregroundStyle(textDim)
+                        Text(sec)
+                            .font(.system(size: secSize, weight: .semibold, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.55))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(14)
+        .padding(pad)
     }
 
     private var emptyView: some View {
