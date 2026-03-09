@@ -12,14 +12,23 @@ private func formatNum(_ value: Double, decimals: Int = 2) -> String {
     return r
 }
 
-/// Seconds → "H:MM:SS"
+/// Seconds → "H:MM:SS" or "H:MM:SS.cc" when centiseconds are non-zero
 private func secondsToTimeString(_ s: Double) -> String {
     guard s.isFinite, s >= 0 else { return "" }
-    let total = Int(s.rounded())
-    return String(format: "%d:%02d:%02d", total / 3600, (total % 3600) / 60, total % 60)
+    let totalCs = Int((s * 100).rounded())
+    let cs = totalCs % 100
+    let totalSec = totalCs / 100
+    let h = totalSec / 3600
+    let m = (totalSec % 3600) / 60
+    let sec = totalSec % 60
+    if cs == 0 {
+        return String(format: "%d:%02d:%02d", h, m, sec)
+    } else {
+        return String(format: "%d:%02d:%02d.%02d", h, m, sec, cs)
+    }
 }
 
-/// "H:MM:SS" or "M:SS" → seconds
+/// "H:MM:SS" or "M:SS" → seconds; bare numbers: 1-2 digits=minutes, 3-4=MMSS, 5-6=HHMMSS
 private func timeStringToSeconds(_ str: String) -> Double? {
     let parts = str.split(separator: ":", omittingEmptySubsequences: false).map(String.init)
     switch parts.count {
@@ -30,7 +39,19 @@ private func timeStringToSeconds(_ str: String) -> Double? {
         guard let m = Double(parts[0]), let s = Double(parts[1]) else { return nil }
         return m * 60 + s
     default:
-        return Double(str)
+        guard let n = Int(str) else { return Double(str) }
+        switch str.count {
+        case 1, 2: // digits only = minutes, e.g. "44" → 44:00
+            return Double(n) * 60
+        case 3, 4: // MMSS, e.g. "830" → 8:30, "4430" → 44:30
+            let m = n / 100, s = n % 100
+            return s < 60 ? Double(m * 60 + s) : nil
+        case 5, 6: // HHMMSS, e.g. "14230" → 1:42:30
+            let h = n / 10000, rem = n % 10000, m = rem / 100, s = rem % 100
+            return (m < 60 && s < 60) ? Double(h * 3600 + m * 60 + s) : nil
+        default:
+            return Double(str)
+        }
     }
 }
 
@@ -41,13 +62,21 @@ private func secondsToPaceString(_ secsPerUnit: Double) -> String {
     return String(format: "%d:%02d", total / 60, total % 60)
 }
 
-/// "M:SS" → seconds, or plain number → minutes * 60
+/// "M:SS" → seconds; bare numbers: 1-2 digits=minutes, 3-4 digits=MMSS (e.g. "830" → 8:30)
 private func paceStringToSeconds(_ str: String) -> Double? {
     let parts = str.split(separator: ":").map(String.init)
     if parts.count == 2, let m = Double(parts[0]), let s = Double(parts[1]) {
         return m * 60 + s
     }
-    return Double(str).map { $0 * 60 }
+    guard parts.count == 1 else { return nil }
+    guard let n = Int(str) else { return Double(str).map { $0 * 60 } }
+    switch str.count {
+    case 3, 4: // MMSS, e.g. "830" → 8:30, "1030" → 10:30
+        let m = n / 100, s = n % 100
+        return s < 60 ? Double(m * 60 + s) : Double(n) * 60
+    default: // 1-2 digits = plain minutes
+        return Double(n) * 60
+    }
 }
 
 // MARK: - Widget Data Model
@@ -108,7 +137,7 @@ enum InputField: String, CaseIterable, Hashable, Codable {
 
     var placeholder: String {
         switch self {
-        case .time:                    return "0:00:00"
+        case .time:                    return "0:00:00.00"
         case .pacePerMile, .pacePerKm: return "0:00"
         default:                       return "0"
         }
@@ -186,6 +215,7 @@ final class ConverterViewModel: ObservableObject {
     private var timeSec: Double? = nil
     private var anchoredGroups: Set<ValueGroup> = []
 
+    private var anchorOrder: [ValueGroup] = []  // tracks insertion order; capped at 2
     private var isUpdating = false
     private let savedKey       = "splitr.savedEntries"
     private let kvStore        = NSUbiquitousKeyValueStore.default
@@ -208,6 +238,7 @@ final class ConverterViewModel: ObservableObject {
             get: { [weak self] in self?.fieldTexts[field] ?? "" },
             set: { [weak self] newValue in
                 guard let self, !self.isUpdating else { return }
+                guard newValue != self.fieldTexts[field] else { return }
                 self.handleEdit(field: field, text: newValue)
             }
         )
@@ -217,7 +248,7 @@ final class ConverterViewModel: ObservableObject {
 
     func clearAll() {
         speedMps = nil; distanceM = nil; timeSec = nil
-        anchoredGroups = []; userEnteredFields = []; activeShortcutKm = nil
+        anchoredGroups = []; anchorOrder = []; userEnteredFields = []; activeShortcutKm = nil
         isUpdating = true
         for f in InputField.allCases { fieldTexts[f] = "" }
         isUpdating = false
@@ -270,6 +301,14 @@ final class ConverterViewModel: ObservableObject {
     func reformatTimeIfNeeded() {
         guard userEnteredFields.contains(.time), let secs = timeSec else { return }
         fieldTexts[.time] = secondsToTimeString(secs)
+    }
+
+    func reformatPaceIfNeeded(field: InputField) {
+        guard (field == .pacePerMile || field == .pacePerKm),
+              userEnteredFields.contains(field),
+              let mps = speedMps, mps > 0 else { return }
+        let divisor: Double = field == .pacePerMile ? 1609.344 : 1000.0
+        fieldTexts[field] = secondsToPaceString(divisor / mps)
     }
 
     func setDistanceKm(_ text: String, shortcutKm: String? = nil) {
@@ -392,11 +431,19 @@ final class ConverterViewModel: ObservableObject {
             let others = userEnteredFields.filter { $0.group == field.group && $0 != field }
             if others.isEmpty {
                 anchoredGroups.remove(field.group)
+                anchorOrder.removeAll { $0 == field.group }
                 setBase(field.group, value: nil)
             }
             userEnteredFields.remove(field)
         } else if let base = parseToBase(field: field, text: text) {
             setBase(field.group, value: base)
+            // Track anchor order; cap at 2 — drop oldest when a 3rd group is entered
+            anchorOrder.removeAll { $0 == field.group }
+            anchorOrder.append(field.group)
+            if anchorOrder.count > 2 {
+                let dropped = anchorOrder.removeFirst()
+                anchoredGroups.remove(dropped)
+            }
             anchoredGroups.insert(field.group)
             // Within a group, only the most-recently-edited field is "user entered"
             InputField.allCases.filter { $0.group == field.group }.forEach { userEnteredFields.remove($0) }
@@ -566,6 +613,7 @@ struct ContentView: View {
                             if !vm.userEnteredFields.isEmpty {
                                 Button {
                                     vm.reformatTimeIfNeeded()
+                                    if let f = focusedField { vm.reformatPaceIfNeeded(field: f) }
                                     saveName = ""
                                     showSaveAlert = true
                                 } label: {
@@ -655,6 +703,7 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .onChange(of: focusedField) { old, _ in
             if old == .time { vm.reformatTimeIfNeeded() }
+            if let old, old == .pacePerMile || old == .pacePerKm { vm.reformatPaceIfNeeded(field: old) }
         }
         .onAppear {
             if !hasSeenHint { showHint = true }
