@@ -1075,27 +1075,53 @@ struct SavedEntryRow: View {
     var onRename: () -> Void
     var onStartReorder: () -> Void
 
+    @AppStorage("splitr.swap.speed")    private var swapSpeed    = false
+    @AppStorage("splitr.swap.pace")     private var swapPace     = false
+    @AppStorage("splitr.swap.distance") private var swapDistance = false
+
+    private func val(_ field: InputField) -> String? {
+        guard let v = entry.texts[field], !v.isEmpty else { return nil }
+        let suffix = field.shortLabel.isEmpty ? "" : " \(field.shortLabel)"
+        return "\(v)\(suffix)"
+    }
+
+    private var leftFields:  [InputField] { [swapSpeed ? .kph : .mph, swapPace ? .pacePerKm : .pacePerMile, swapDistance ? .distKm : .distMiles] }
+    private var rightFields: [InputField] { [swapSpeed ? .mph : .kph, swapPace ? .pacePerMile : .pacePerKm, swapDistance ? .distMiles : .distKm] }
+    private var leftLine:  String { leftFields.compactMap  { val($0) }.joined(separator: "  ·  ") }
+    private var rightLine: String { rightFields.compactMap { val($0) }.joined(separator: "  ·  ") }
+
     var body: some View {
         Button { vm.restore(entry) } label: {
             HStack(alignment: .center, spacing: 10) {
                 VStack(alignment: .leading, spacing: 3) {
-                    // Name (if set)
-                    if !entry.name.isEmpty {
-                        Text(entry.name)
-                            .font(.system(size: 13, weight: .bold, design: .rounded))
-                            .foregroundStyle(Splitr.textPrimary)
+                    // Row 1: Name (white) · Time (gray), left-aligned
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        if !entry.name.isEmpty {
+                            Text(entry.name)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundStyle(Splitr.textPrimary)
+                                .lineLimit(1)
+                        }
+                        if let time = val(.time) {
+                            Text("·")
+                                .font(.system(size: 11, weight: .regular, design: .rounded))
+                                .foregroundStyle(Splitr.textDim)
+                            Text(time)
+                                .font(.system(size: 11, weight: .regular, design: .rounded))
+                                .foregroundStyle(Splitr.textSecondary)
+                                .lineLimit(1)
+                        }
+                    }
+                    // Row 2: Left-column units (blue)
+                    if !leftLine.isEmpty {
+                        Text(leftLine)
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                            .foregroundStyle(Splitr.accent.opacity(0.9))
                             .lineLimit(1)
                     }
-                    // Line 1 — user inputs
-                    if !entry.line1.isEmpty {
-                        Text(entry.line1)
-                            .font(.system(size: entry.name.isEmpty ? 13 : 11, weight: entry.name.isEmpty ? .semibold : .regular, design: .rounded))
-                            .foregroundStyle(entry.name.isEmpty ? Splitr.accent : Splitr.accent.opacity(0.8))
-                            .lineLimit(1)
-                    }
-                    // Line 2 — derived values
-                    if !entry.line2.isEmpty {
-                        Text(entry.line2)
+                    // Row 3: Right-column units (gray)
+                    if !rightLine.isEmpty {
+                        Text(rightLine)
                             .font(.system(size: 11, weight: .regular, design: .rounded))
                             .foregroundStyle(Splitr.textSecondary)
                             .lineLimit(1)
