@@ -1,0 +1,91 @@
+default_platform(:ios)
+
+def api_key
+  app_store_connect_api_key(
+    key_id:       "G8CBGNXR6R",
+    issuer_id:    "fce3accb-3fb2-4543-80cd-73bb6acb8f64",
+    key_filepath: File.expand_path("~/.appstoreconnect/AuthKey_G8CBGNXR6R.p8")
+  )
+end
+
+platform :ios do
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    build_app(
+      project: "Splitr.xcodeproj",
+      scheme: "Splitr",
+      export_method: "app-store",
+      clean: true
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Push App Store metadata (no binary)"
+  lane :metadata do
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_app_version_update: true,
+      run_precheck_before_submit: false,
+      force: true
+    )
+  end
+
+  desc "Submit for App Store review"
+  lane :submit do
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_app_version_update: true,
+      run_precheck_before_submit: false,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      price_tier: 0,
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+
+  desc "Create review detail record (run once for new versions)"
+  lane :create_review_detail do
+    key = api_key
+    require "spaceship"
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.from(hash: key)
+    app = Spaceship::ConnectAPI::App.find("com.zimalogistics.splitr")
+    version = app.get_edit_app_store_version
+    UI.message("Version ID: #{version.id}")
+
+    body = {
+      data: {
+        type: "appStoreReviewDetails",
+        attributes: {
+          contactEmail: "gabe@zimalogistics.com",
+          contactFirstName: "Gabe",
+          contactLastName: "Lee",
+          contactPhone: "+17207721781"
+        },
+        relationships: {
+          appStoreVersion: {
+            data: { type: "appStoreVersions", id: version.id }
+          }
+        }
+      }
+    }
+    client = Spaceship::ConnectAPI.tunes_request_client
+    client.post("v1/appStoreReviewDetails", body)
+    UI.success("Review detail created!")
+  end
+
+  desc "Build, upload, and submit"
+  lane :release do
+    beta
+    submit
+  end
+end

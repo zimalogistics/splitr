@@ -1,0 +1,32 @@
+Splitr is a smart pace calculator for runners, cyclists, and anyone who thinks in splits.
+
+Enter any two values — speed, pace, distance, or time — and Splitr instantly calculates everything else. No tapping a button. No switching screens. Just the numbers you need.
+
+HOW IT WORKS
+Type a distance and a time, and Splitr shows you your pace and speed. Type a pace and a distance, and it tells you your finish time. Change any field and everything updates live.
+
+WHAT YOU CAN CALCULATE
+• Speed in mph and km/h
+• Pace per mile and pace per kilometre
+• Distance in miles and kilometres
+• Total time in hours, minutes, and seconds
+
+BUILT FOR CLARITY
+A clean, dark interface keeps the focus on your numbers. User-entered values are highlighted in blue. Derived values are calculated automatically and shown in a distinct style so you always know what you typed vs. what was worked out.
+
+DISTANCE SHORTCUTS
+Tap 5K, 10K, Half Marathon, or Marathon to instantly set the distance — then just enter a pace or time to get everything else.
+
+SAVE YOUR PRESETS
+Save any calculation with a custom name. Restore it with one tap. Reorder and rename your presets whenever you like. Your presets sync automatically across your devices via iCloud.
+
+HOME SCREEN WIDGET
+Add the Splitr widget to your home screen to see your most recently saved preset at a glance — no need to open the app.
+
+SHARE RESULTS
+Share any calculation or saved entry via text, email, or any app on your phone.
+
+100% PRIVATE
+No accounts. No tracking. No data collection. Your data never leaves your device.
+
+Whether you're planning a marathon, checking your tempo pace, or converting a training plan from miles to kilometres, Splitr gives you the answer before you've finished typing.

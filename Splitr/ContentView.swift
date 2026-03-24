@@ -221,10 +221,12 @@ final class ConverterViewModel: ObservableObject {
     private let kvStore        = NSUbiquitousKeyValueStore.default
     private let sharedDefaults = UserDefaults(suiteName: appGroupID)
     private var iCloudObserver: NSObjectProtocol?
+    private let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
 
     init() {
         loadSaved()
         setupiCloudSync()
+        feedbackGenerator.prepare()
     }
 
     deinit {
@@ -499,7 +501,7 @@ final class ConverterViewModel: ObservableObject {
         if !anchoredGroups.contains(.time)     { timeSec = time }
 
         if anchoredGroups.count >= 2 {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            feedbackGenerator.impactOccurred()
         }
 
         isUpdating = true
@@ -577,11 +579,11 @@ struct ContentView: View {
     @FocusState private var focusedField: InputField?
     @State private var showSaveAlert = false
     @State private var saveName = ""
-    @AppStorage("splitr.hasSeenHint")    private var hasSeenHint    = false
+    @AppStorage("splitr.hasSeenOnboarding") private var hasSeenOnboarding = false
     @AppStorage("splitr.swap.speed")    private var swapSpeed      = false
     @AppStorage("splitr.swap.pace")     private var swapPace       = false
     @AppStorage("splitr.swap.distance") private var swapDistance   = false
-    @State private var showHint = false
+    @State private var showOnboarding = false
     @State private var savedReorderMode = false
     @State private var showTipJar = false
 
@@ -652,6 +654,8 @@ struct ContentView: View {
                         if !vm.savedEntries.isEmpty {
                             SavedSection(vm: vm, isReorderMode: $savedReorderMode)
                         }
+
+                        PrivacyBadgeFooter()
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 16)
@@ -706,20 +710,18 @@ struct ContentView: View {
             if let old, old == .pacePerMile || old == .pacePerKm { vm.reformatPaceIfNeeded(field: old) }
         }
         .onAppear {
-            if !hasSeenHint { showHint = true }
+            if !hasSeenOnboarding { showOnboarding = true }
         }
         .sheet(isPresented: $showTipJar) {
             TipJarSheet()
                 .presentationDetents([.height(420)])
                 .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showHint) {
-            HintSheet {
-                hasSeenHint = true
-            }
-            .presentationDetents([.height(300)])
-            .presentationDragIndicator(.visible)
-            .preferredColorScheme(.dark)
+        .sheet(isPresented: $showOnboarding, onDismiss: { hasSeenOnboarding = true }) {
+            OnboardingSheet()
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $showSaveAlert, onDismiss: { focusedField = nil }) {
             NamePresetSheet(saveName: $saveName) { name in
@@ -1176,61 +1178,214 @@ struct SavedEntryRow: View {
     }
 }
 
-// MARK: - Hint Sheet
+// MARK: - Onboarding Sheet (Privacy + How it works)
 
-struct HintSheet: View {
+struct OnboardingSheet: View {
     @Environment(\.dismiss) private var dismiss
-    let onDismiss: () -> Void
+    @State private var page = 0
 
-    private struct HintRow: View {
-        let icon: String
-        let text: String
-        var body: some View {
-            HStack(alignment: .top, spacing: 14) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-                    .foregroundStyle(Splitr.accent)
-                    .frame(width: 28)
-                Text(text)
-                    .font(.system(size: 15, design: .rounded))
-                    .foregroundStyle(Splitr.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
+    private let tealGradient = LinearGradient(
+        colors: [Color(red: 0.18, green: 0.72, blue: 0.58),
+                 Color(red: 0.10, green: 0.52, blue: 0.46)],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+    )
 
     var body: some View {
         ZStack {
             Splitr.bgBase.ignoresSafeArea()
-            VStack(spacing: 24) {
-                Text("How it works")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(Splitr.textPrimary)
-
-                VStack(alignment: .leading, spacing: 16) {
-                    HintRow(icon: "pencil.and.outline",
-                            text: "Enter any two values — speed, pace, distance, or time.")
-                    HintRow(icon: "bolt.fill",
-                            text: "Splitr instantly calculates everything else.")
-                    HintRow(icon: "bookmark.fill",
-                            text: "Save your favourite combinations and load them later.")
+            VStack(spacing: 0) {
+                TabView(selection: $page) {
+                    privacyPage.tag(0)
+                    howItWorksPage.tag(1)
                 }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .animation(.easeInOut(response: 0.35), value: page)
 
+                // Page dots
+                HStack(spacing: 6) {
+                    ForEach(0..<2, id: \.self) { i in
+                        Capsule()
+                            .fill(i == page ? Splitr.accent : Splitr.borderIdle)
+                            .frame(width: i == page ? 20 : 6, height: 6)
+                            .animation(.spring(response: 0.3), value: page)
+                    }
+                }
+                .padding(.top, 12)
+
+                // CTA button
                 Button {
-                    onDismiss()
-                    dismiss()
+                    if page == 0 { withAnimation { page = 1 } }
+                    else { dismiss() }
                 } label: {
-                    Text("Got it")
+                    Text(page == 0 ? "Continue" : "Got it")
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Splitr.bgBase)
+                        .foregroundStyle(page == 0 ? Color(red: 0.05, green: 0.07, blue: 0.13) : Splitr.bgBase)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Splitr.accent)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(.vertical, 16)
+                        .background(page == 0 ? tealGradient.erased : AnyShapeStyle(Splitr.accent))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .animation(.easeInOut(response: 0.2), value: page)
                 }
+                .padding(.horizontal, 28)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
             }
-            .padding(28)
         }
+    }
+
+    // MARK: Page 1 — Privacy
+
+    private var privacyPage: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                Spacer().frame(height: 40)
+                ZStack {
+                    Circle()
+                        .fill(tealGradient)
+                        .frame(width: 80, height: 80)
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 36))
+                        .foregroundStyle(.white)
+                }
+                .padding(.bottom, 24)
+                Text("100% Private")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundStyle(Splitr.textPrimary)
+                    .padding(.bottom, 12)
+                Text("No accounts. No tracking. No data collection.\nYour data never leaves your device.")
+                    .font(.system(size: 15, design: .rounded))
+                    .foregroundStyle(Splitr.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 36)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 10) { privacyBadges }
+                    VStack(spacing: 10) { privacyBadges }
+                }
+                Spacer().frame(height: 16)
+            }
+            .padding(.horizontal, 28)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+    }
+
+    @ViewBuilder
+    private var privacyBadges: some View {
+        PrivacyBadge(icon: "chart.bar.fill",   label: "No Analytics",
+                     iconColor: Color(red: 1.0, green: 0.35, blue: 0.35))
+        PrivacyBadge(icon: "megaphone.fill",    label: "No Ads",
+                     iconColor: Color(red: 0.55, green: 0.45, blue: 1.0))
+        PrivacyBadge(icon: "person.fill.xmark", label: "No Sign-Up",
+                     iconColor: Color(red: 1.0, green: 0.65, blue: 0.20))
+    }
+
+    // MARK: Page 2 — How it works
+
+    private var howItWorksPage: some View {
+        VStack(spacing: 24) {
+            Spacer()
+            Text("How it works")
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundStyle(Splitr.textPrimary)
+            VStack(alignment: .leading, spacing: 20) {
+                HintRow(icon: "pencil.and.outline",
+                        text: "Enter any two values — speed, pace, distance, or time.")
+                HintRow(icon: "bolt.fill",
+                        text: "Splitr instantly calculates everything else.")
+                HintRow(icon: "bookmark.fill",
+                        text: "Save your favourite combinations and load them later.")
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 28)
+    }
+}
+
+private struct HintRow: View {
+    let icon: String
+    let text: String
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundStyle(Splitr.accent)
+                .frame(width: 28)
+            Text(text)
+                .font(.system(size: 15, design: .rounded))
+                .foregroundStyle(Splitr.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+private extension LinearGradient {
+    var erased: AnyShapeStyle { AnyShapeStyle(self) }
+}
+
+private struct PrivacyBadge: View {
+    let icon: String
+    let label: String
+    let iconColor: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(iconColor)
+            Text(label)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(Splitr.textSecondary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Splitr.bgCard)
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(Splitr.borderIdle, lineWidth: 1))
+    }
+}
+
+// MARK: - Privacy Badge Footer
+
+struct PrivacyBadgeFooter: View {
+    @ViewBuilder
+    private var footerBadges: some View {
+        PrivacyBadge(icon: "chart.bar.fill",
+                     label: "No Analytics",
+                     iconColor: Color(red: 1.0, green: 0.35, blue: 0.35))
+        PrivacyBadge(icon: "megaphone.fill",
+                     label: "No Ads",
+                     iconColor: Color(red: 0.55, green: 0.45, blue: 1.0))
+        PrivacyBadge(icon: "person.fill.xmark",
+                     label: "No Sign-Up",
+                     iconColor: Color(red: 1.0, green: 0.65, blue: 0.20))
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Rectangle()
+                    .fill(Splitr.borderIdle)
+                    .frame(height: 1)
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color(red: 0.18, green: 0.72, blue: 0.58).opacity(0.7))
+                Rectangle()
+                    .fill(Splitr.borderIdle)
+                    .frame(height: 1)
+            }
+
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { footerBadges }
+                VStack(spacing: 8) { footerBadges }
+            }
+
+            Text("Your data never leaves your device.")
+                .font(.system(size: 12, design: .rounded))
+                .foregroundStyle(Splitr.textSecondary)
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 }
 
