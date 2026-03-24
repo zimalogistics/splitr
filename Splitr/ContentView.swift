@@ -1199,7 +1199,7 @@ struct OnboardingSheet: View {
                     howItWorksPage.tag(1)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.easeInOut(response: 0.35), value: page)
+                .animation(.easeInOut(duration: 0.35), value: page)
 
                 // Page dots
                 HStack(spacing: 6) {
@@ -1207,7 +1207,7 @@ struct OnboardingSheet: View {
                         Capsule()
                             .fill(i == page ? Splitr.accent : Splitr.borderIdle)
                             .frame(width: i == page ? 20 : 6, height: 6)
-                            .animation(.spring(response: 0.3), value: page)
+                            .animation(.spring(duration: 0.3), value: page)
                     }
                 }
                 .padding(.top, 12)
@@ -1224,7 +1224,7 @@ struct OnboardingSheet: View {
                         .padding(.vertical, 16)
                         .background(page == 0 ? tealGradient.erased : AnyShapeStyle(Splitr.accent))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .animation(.easeInOut(response: 0.2), value: page)
+                        .animation(.easeInOut(duration: 0.2), value: page)
                 }
                 .padding(.horizontal, 28)
                 .padding(.top, 16)
