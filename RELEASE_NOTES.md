@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.0.0 (build 5)
+## v1.0.1 (build 5)
 - Initial release
 - Privacy welcome screen on first launch
 - "How it works" onboarding walkthrough

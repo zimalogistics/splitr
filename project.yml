@@ -30,7 +30,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.zimalogistics.splitr
         PRODUCT_NAME: Splitr
         SWIFT_VERSION: "5.0"
-        MARKETING_VERSION: "1.0.0"
+        MARKETING_VERSION: "1.0.1"
         CURRENT_PROJECT_VERSION: "5"
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_FILE: Splitr/Info.plist
@@ -59,7 +59,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.zimalogistics.splitr.widget
         PRODUCT_NAME: SplitrWidget
         SWIFT_VERSION: "5.0"
-        MARKETING_VERSION: "1.0.0"
+        MARKETING_VERSION: "1.0.1"
         CURRENT_PROJECT_VERSION: "5"
         DEVELOPMENT_TEAM: 58G8DR3YV6
         CODE_SIGN_STYLE: Automatic

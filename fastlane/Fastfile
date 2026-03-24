@@ -15,6 +15,7 @@ platform :ios do
       project: "Splitr.xcodeproj",
       scheme: "Splitr",
       export_method: "app-store",
+      export_xcargs: "-allowProvisioningUpdates",
       clean: true
     )
     upload_to_testflight(
