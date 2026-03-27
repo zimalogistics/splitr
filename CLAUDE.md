@@ -6,7 +6,7 @@ Android: ../speed-converter-android/
 ## Build
 - Uses xcodegen: run `./generate.sh` or `xcodegen generate` after adding source files
 - Deployment target: iOS 17.0, iPhone only
-- Bundle ID: com.zimalogistics.splitr
+- **Bundle ID:** com.zimalogistics.splitr
 - Widget bundle: com.zimalogistics.splitr.widget
 - App Group: group.com.zimalogistics.splitr
 

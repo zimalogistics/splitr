@@ -16,3 +16,12 @@ DerivedData/
 .swiftpm/
 stuck.png
 Splitr/SpeedConverter.entitlements
+
+# Build artifacts
+*.ipa
+*.dSYM.zip
+fastlane/report.xml
+fastlane/README.md
+
+# Temp files
+AppStore/screenshots/temp_reference.png
