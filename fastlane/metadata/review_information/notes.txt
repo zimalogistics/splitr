@@ -1,0 +1,3 @@
+Splitr is a pace and speed calculator. Enter any two of: speed, pace, distance, time — the remaining fields calculate automatically. No account or login required.
+
+To test the tip jar: tap the coffee cup icon (top right) to open it. Tips are optional consumable in-app purchases ($0.99, $2.99, $4.99) — no features are gated behind payment.
