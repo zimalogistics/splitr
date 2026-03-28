@@ -1,0 +1,46 @@
+{
+  "app": {
+    "name": "Splitr",
+    "tagline": "Any Race. Any Pace. Instantly."
+  },
+  "accent_color": "#4DA4FF",
+  "gradient_top": "#0C1220",
+  "gradient_bottom": "#060C16",
+  "colors": {
+    "accent": "#4DA4FF",
+    "primary": "#0C1220",
+    "secondary": "#060C16"
+  },
+  "screenshots": {
+    "cta_order": [
+      {
+        "headline": "Any Race. Any Pace. Instantly.",
+        "highlight_word": "Instantly",
+        "subtext": "Enter any two values \u2014 get everything else live."
+      },
+      {
+        "headline": "Tap a Distance, Get Everything",
+        "highlight_word": "Everything",
+        "subtext": "800m to Marathon shortcuts. One tap fills the distance."
+      },
+      {
+        "headline": "Save Every Training Pace",
+        "highlight_word": "Save",
+        "subtext": "Named presets sync across your devices via iCloud."
+      },
+      {
+        "headline": "Your Privacy, Protected.",
+        "highlight_word": "Privacy",
+        "subtext": "No accounts. No sign-up. No tracking. Ever."
+      },
+      {
+        "headline": "Love It? Tip the Dev.",
+        "highlight_word": "Tip",
+        "subtext": "Every feature included. Optional tips keep the lights on."
+      }
+    ]
+  },
+  "feature_request": {
+    "email": "support@zima-logistics.com"
+  }
+}

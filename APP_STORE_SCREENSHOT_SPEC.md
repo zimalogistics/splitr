@@ -43,13 +43,13 @@
 
 ---
 
-## Screenshot 4 — Privacy / Free Forever
+## Screenshot 4 — Privacy
 **Raw file:** `screenshots/raw/4.png`
 **Screen shown:** ⚠️ CURRENTLY AN EMPTY STATE — recommend replacing with the privacy onboarding screen or a widget on the home screen
 
-**Headline:** 100% **Free.** No Strings.
-**Accent word:** Free
-**Subtext:** No subscription. No sign-up. No tracking. Ever.
+**Headline:** Your **Privacy,** Protected.
+**Accent word:** Privacy
+**Subtext:** No accounts. No sign-up. No tracking. Ever.
 
 ---
 
@@ -57,11 +57,9 @@
 **Raw file:** `screenshots/raw/5.png`
 **Screen shown:** Tip jar — "Buy the Dev a Coffee" with $0.99 / $2.99 / $4.99 options
 
-**Headline:** **Free** Forever. Tip if You Love It.
-**Accent word:** Free
-**Subtext:** Every feature is free. Optional tips keep the lights on.
-
-**Apple policy note:** ✅ Allowed — tip jar screenshots are permitted. Showing voluntary consumable IAPs is not restricted. The "Splitr is free and always will be" copy makes it clear no features are paywalled.
+**Headline:** Love It? **Tip** the Dev.
+**Accent word:** Tip
+**Subtext:** Every feature included. Optional tips keep the lights on.
 
 ---
 
@@ -79,10 +77,3 @@
 
 ---
 
-## ⚠️ Action Required Before Processing
-**Screenshot 4 is an empty/blank app state** — this is a poor conversion screenshot. Recommend replacing with one of:
-- The privacy onboarding screen (first-launch "100% Offline" flow)
-- The Splitr widget on an iPhone home screen
-- A partial calculation showing the distance shortcuts row clearly
-
-If you want to proceed with the current 4.png anyway, the "Free Forever" CTA still works — it's just not as visually compelling as the other shots.
