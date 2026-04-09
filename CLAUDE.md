@@ -1,23 +1,25 @@
+# Splitr — Project Rules
+
+## App Info
+- **Bundle ID:** `com.zimalogistics.splitr`
+- **Platform:** iOS
+- **GitHub repo:** github.com/zimalogistics/splitr
+- **Pricing:** Free
 
 ## Publishing
 - **Privacy policy Gist ID:** —
 - **Privacy policy URL:** —
 - **Pipeline:** `./publish.sh ios beta` (TestFlight) · `./publish.sh ios metadata` (store listing)
 - **Build numbers:** YYYYMMDDHHmm timestamp format (auto-set by publish.sh)
-# Splitr — Project Notes
-
-## Companion Project
-Android: ../speed-converter-android/
 
 ## Build
-- Uses xcodegen: run `./generate.sh` or `xcodegen generate` after adding source files
-- Deployment target: iOS 17.0, iPhone only
-- **Bundle ID:** com.zimalogistics.splitr
-- Widget bundle: com.zimalogistics.splitr.widget
-- App Group: group.com.zimalogistics.splitr
+```bash
+xcodegen generate
+xcodebuild -project Splitr.xcodeproj -scheme Splitr \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build \
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES SWIFT_STRICT_CONCURRENCY=complete
+```
 
-## Key Files
-- `Splitr/ContentView.swift` — all calculator logic + main UI (~1,200 lines)
-- `Splitr/TipJarView.swift` — StoreKit2 tip jar
-- `SplitrWidget/SplitrWidget.swift` — WidgetKit extension
-- `project.yml` — xcodegen config
+## Companion Projects
+- **Android:** ../speed-converter-android/
+- **Shared Assets:** ../speed-converter-shared/
