@@ -25,19 +25,18 @@ xcodebuild -project Splitr.xcodeproj -scheme Splitr \
 - **Shared Assets:** ../speed-converter-shared/
 
 ## Testing & Quality Gates
-Before handing ANY build to the user for Xcode testing, ALL of the following must pass:
+All quality gates in `~/.claude/standards/app-quality.md` apply. App-specific commands:
+```bash
+xcodegen generate && xcodebuild -project Splitr.xcodeproj -scheme Splitr -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build SWIFT_TREAT_WARNINGS_AS_ERRORS=YES SWIFT_STRICT_CONCURRENCY=complete
+```
+**The user must NEVER find a broken build.** Fix failures silently, re-run, do not hand off.
 
-1. **Build:** `xcodegen generate && xcodebuild` must complete with zero errors AND zero warnings
-2. **Tests:** If test target exists, run it. If not, build is the minimum gate.
-3. **Codex CLI review:** Run after every build — never skip, never ask
-   ```bash
-   codex exec --sandbox read-only --skip-git-repo-check --full-auto --config model_reasoning_effort="high" "Review for bugs and logic errors" 2>/dev/null
-   ```
-4. **Codex PR review:** Create PR, push, wait ~3 minutes for Codex review before merging
-5. **Manual verification:** Run in Simulator, verify the feature works end-to-end
 
-**The user must NEVER find a build error, warning, crash, or broken feature when they open Xcode.**
-If any gate fails, fix it silently and re-run. Do not hand off a broken build.
+## In-App Purchase
+- **Product ID:** `com.zimalogistics.splitr.tip.small / .medium / .large`
+- **Type:** Consumable
+- **Price:** $0.99 / $2.99 / $4.99
+- **Display Name:** Tip Jar (Small Coffee / Large Coffee / You're a Legend)
 
 ## Stack
 - **Min deployment:** iOS 17.0
