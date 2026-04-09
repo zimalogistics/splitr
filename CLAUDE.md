@@ -1,3 +1,9 @@
+
+## Publishing
+- **Privacy policy Gist ID:** —
+- **Privacy policy URL:** —
+- **Pipeline:** `./publish.sh ios beta` (TestFlight) · `./publish.sh ios metadata` (store listing)
+- **Build numbers:** YYYYMMDDHHmm timestamp format (auto-set by publish.sh)
 # Splitr — Project Notes
 
 ## Companion Project

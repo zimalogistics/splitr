@@ -65,7 +65,7 @@ struct TipJarSheet: View {
                     Text("Buy the Dev a Coffee")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-                    Text("Splitr is free and always will be.\nIf it's saved you time, a tip means a lot.")
+                    Text("This app is free and always will be.\nIf it's saved you time, a tip means a lot.")
                         .font(.system(size: 14, design: .rounded))
                         .foregroundStyle(Splitr.textSecondary)
                         .multilineTextAlignment(.center)

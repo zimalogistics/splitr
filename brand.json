@@ -42,5 +42,30 @@
   },
   "feature_request": {
     "email": "support@zima-logistics.com"
+  },
+  "design": {
+    "corner_radius_card": 16,
+    "corner_radius_button": 12,
+    "corner_radius_sheet": 24,
+    "shadow_opacity": 0.08,
+    "shadow_radius": 8,
+    "shadow_offset_y": 2,
+    "elevation_card": 2,
+    "spacing_screen_edge": 16,
+    "spacing_section": 24,
+    "spacing_item": 12,
+    "spacing_card_internal": 16,
+    "button_height_primary": 50,
+    "button_height_secondary": 44,
+    "icon_style": "filled",
+    "font_size_hero": 32,
+    "font_size_section_header": 17,
+    "font_size_body": 16,
+    "font_size_caption": 13,
+    "font_weight_header": "bold",
+    "font_weight_label": "semibold",
+    "font_weight_body": "regular",
+    "animation_response": 0.3,
+    "animation_damping": 0.8
   }
 }

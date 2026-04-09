@@ -1,4 +1,0 @@
-- Fixed hint sheet re-appearing after swipe dismiss
-- Improved haptic feedback reliability
-- Privacy onboarding on first launch
-- Bug fixes and performance improvements

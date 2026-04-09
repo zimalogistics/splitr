@@ -327,7 +327,7 @@ final class ConverterViewModel: ObservableObject {
     }
 
     private static func buildShareText(lookup: (InputField) -> String?) -> String {
-        var lines = ["Splitr", ""]
+        var lines = [String]()
         let sections: [(String, [InputField])] = [
             ("Speed",    [.mph, .kph]),
             ("Pace",     [.pacePerMile, .pacePerKm]),
@@ -665,7 +665,6 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("Splitr")
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(Splitr.bgBase, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -1292,7 +1291,7 @@ struct OnboardingSheet: View {
                 HintRow(icon: "pencil.and.outline",
                         text: "Enter any two values — speed, pace, distance, or time.")
                 HintRow(icon: "bolt.fill",
-                        text: "Splitr instantly calculates everything else.")
+                        text: "The rest is calculated instantly.")
                 HintRow(icon: "bookmark.fill",
                         text: "Save your favourite combinations and load them later.")
             }
