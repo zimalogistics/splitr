@@ -24,6 +24,14 @@ xcodebuild -project Splitr.xcodeproj -scheme Splitr \
 - **Android:** ../speed-converter-android/
 - **Shared Assets:** ../speed-converter-shared/
 
+
+## Reference Screenshots (for Android companion)
+To capture iOS screenshots as design reference for the Android version:
+```bash
+~/Documents/random-projects/dev-projects/apps/auto-listing-apps/capture-reference.sh speed-converter
+```
+This auto-captures every 2 seconds while you navigate the app in the simulator, then auto-names via OCR. Screenshots save to `../speed-converter-shared/reference/screens/` with a generated `SCREEN_MAP.md`. Just run the command above, navigate every screen, and press Ctrl+C when done.
+
 ## Testing & Quality Gates
 All quality gates in `~/.claude/standards/app-quality.md` apply. App-specific commands:
 ```bash
